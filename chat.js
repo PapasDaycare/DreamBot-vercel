@@ -1,26 +1,27 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Only POST requests allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const userMessage = req.body.message;
+  const { message } = req.body;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBLv1K51aj30_ofugQhsWE1LxB_MKy-Eys, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: userMessage }] }]
-      })
+        contents: [{ parts: [{ text: message }] }]
+      }),
     });
 
-    const data = await response.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn’t understand that.";
-    res.status(200).json({ reply });
+    const data = await geminiRes.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    res.status(200).json({ reply: reply || "Sorry, I didn’t catch that. Try asking again!" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error." });
+    console.error("Gemini API Error:", error);
+    res.status(500).json({ reply: "There was a problem getting a response." });
   }
 }
